@@ -1,0 +1,38 @@
+@import './base.css';
+
+:root {
+  --nav-bg: #1d1d3b;
+  --nav-text: #ffffff;
+  --soft-bg: #f5f5f7;
+  --card-bg: #f2f2f3;
+  --primary: #6c63ff;
+  --text-dark: #1d1d3b;
+  --text-muted: #5f6477;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  min-height: 100%;
+  background: #0f1221;
+}
+
+body {
+  display: block;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.router-link-exact-active,
+.router-link-active {
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  a:hover {
+    text-decoration: none;
+  }
+}
