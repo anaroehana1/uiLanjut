@@ -2,7 +2,6 @@
   <div class="contact-page">
     <div class="contact-header">
       <h1>Contact Us</h1>
-
       <p>
         We'd love to hear from you. Please fill out the form below or reach out via our contact
         info.
@@ -12,26 +11,21 @@
     <div class="contact-content">
       <div class="contact-info">
         <div class="info-item">
-          <div class="info-icon">📍</div>
-
+          <div class="info-icon">??</div>
           <div>
             <h3>Our Office</h3>
             <p>123 Event Street, Tech City, 10101</p>
           </div>
         </div>
-
         <div class="info-item">
-          <div class="info-icon">📞</div>
-
+          <div class="info-icon">??</div>
           <div>
             <h3>Phone</h3>
             <p>+62 812 3456 7890</p>
           </div>
         </div>
-
         <div class="info-item">
-          <div class="info-icon">✉️</div>
-
+          <div class="info-icon">??</div>
           <div>
             <h3>Email</h3>
             <p>hello@gatherly.com</p>
@@ -43,22 +37,16 @@
         <form @submit.prevent>
           <div class="form-group">
             <label>Name</label>
-
             <input type="text" placeholder="John Doe" class="form-control" />
           </div>
-
           <div class="form-group">
             <label>Email</label>
-
             <input type="email" placeholder="john@example.com" class="form-control" />
           </div>
-
           <div class="form-group">
             <label>Message</label>
-
             <textarea placeholder="How can we help you?" rows="5" class="form-control"></textarea>
           </div>
-
           <button class="btn-submit">Send Message</button>
         </form>
       </div>
@@ -122,5 +110,74 @@
 .info-item p {
   color: #555;
   line-height: 1.5;
+}
+
+.contact-form {
+  flex: 1.5;
+  background: white;
+  padding: 2.5rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  border: 1px solid #eee;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.form-control {
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.form-control:focus {
+  border-color: #6644ff;
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 1rem;
+  background: #6644ff;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn-submit:hover {
+  background: #5533ee;
+}
+
+@media (max-width: 768px) {
+  .contact-content {
+    flex-direction: column;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
