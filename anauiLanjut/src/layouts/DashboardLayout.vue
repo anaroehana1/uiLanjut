@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RouterView, RouterLink } from 'vue-router';
+import { RouterView } from 'vue-router';
 </script>
 
 <template>
@@ -12,12 +12,12 @@ import { RouterView, RouterLink } from 'vue-router';
       <div class="rail-brand">
         <router-link to="/">Gatherly Organizer</router-link>
       </div>
+      
       <nav class="rail-nav">
-        <router-link to="/dashboard" class="rail-link active">Overview</router-link>
-        <a href="#" class="rail-link">My Events</a>
-        <a href="#" class="rail-link">Attendees</a>
-        <a href="#" class="rail-link">QR Check-in</a>
+        <router-link to="/dashboard" class="rail-link" exact-active-class="active">Dashboard</router-link>
+        <router-link to="/dashboard/events" class="rail-link" active-class="active">Event Management</router-link>
       </nav>
+
       <div class="rail-footer">
         <router-link to="/" class="rail-link">&larr; Back to Public</router-link>
       </div>
@@ -25,10 +25,6 @@ import { RouterView, RouterLink } from 'vue-router';
 
     <!-- PANE: Area utama dinamis tempat konten berubah dan bisa digulir secara mandiri -->
     <main class="dashboard-pane">
-      <header class="pane-header">
-        <h1>Dashboard</h1>
-        <div class="user-profile">Admin</div>
-      </header>
       <div class="pane-content">
         <RouterView />
       </div>
@@ -51,7 +47,8 @@ import { RouterView, RouterLink } from 'vue-router';
 
 /* RAIL STYLES */
 .dashboard-rail {
-  width: 260px;
+  width: 220px;
+  flex: 0 0 220px;
   background-color: #1c1948; /* Kontras gelap membedakan area nav dan konten */
   color: white;
   display: flex;
@@ -96,17 +93,44 @@ import { RouterView, RouterLink } from 'vue-router';
   overflow-y: auto; /* Scroll khusus untuk area ini saja */
 }
 
-.pane-header {
-  background: white;
-  padding: var(--space-4) var(--space-8);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--border-color);
-}
-.pane-header h1 { font-size: 1.5rem; margin: 0; }
-
 .pane-content {
   padding: var(--space-8);
+}
+
+@media (max-width: 760px) {
+  .dashboard-rail {
+    width: 180px;
+    flex-basis: 180px;
+  }
+
+  .pane-content {
+    padding: var(--space-4);
+  }
+}
+
+@media (max-width: 520px) {
+  .dashboard-layout {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+    flex-direction: column;
+  }
+
+  .dashboard-rail {
+    width: 100%;
+    flex-basis: auto;
+  }
+
+  .rail-nav {
+    padding: var(--space-2) 0;
+  }
+
+  .rail-footer {
+    display: none;
+  }
+
+  .dashboard-pane {
+    overflow-y: visible;
+  }
 }
 </style>

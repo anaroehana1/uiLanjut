@@ -1,14 +1,25 @@
+<script setup>
+import { computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useEvents } from '@/composables/useEvent';
+
+const route = useRoute();
+const router = useRouter();
+const { getEventById } = useEvents();
+const event = computed(() => getEventById(route.params.id));
+</script>
+
 <template>
-  <div class="event-detail-page">
-    <button @click="$router.push('/browse/events')" class="btn-back">&larr; Back to Events</button>
+  <div v-if="event && !event.done" class="event-detail-page">
+    <button @click="router.push('/browse/events')" class="btn-back">&larr; Back to Events</button>
 
     <div class="detail-header">
-      <span class="event-tag">Workshop & Training</span>
-      <h1>Vue.js Mastery Workshop {{ $route.params.id }}</h1>
+      <span class="event-tag">{{ event.cat }}</span>
+      <h1>{{ event.title }}</h1>
       <div class="meta-info">
-        <span class="meta-item">📅 October 12, 2026</span>
-        <span class="meta-item">📍 Tech Hub, Jakarta Pusat</span>
-        <span class="meta-item">👥 Quota: 150 Attendees</span>
+        <span class="meta-item">📅 {{ event.date }}<template v-if="event.time"> · {{ event.time }}</template></span>
+        <span class="meta-item">📍 {{ event.loc }}</span>
+        <span class="meta-item">👥 Quota: {{ event.quota }} Attendees</span>
       </div>
     </div>
 
@@ -18,32 +29,14 @@
       <!-- F-PATTERN: Breaking text with Headings & Bullet Points -->
       <div class="main-desc">
         <h2>About This Event</h2>
-        <p>
-          Welcome to the biggest web interface development training event of the year!
-          Gatherly is collaborating with the local developer community to host a comprehensive workshop
-          designed specifically to bring together professionals, enthusiasts, and students.
-        </p>
-        <p>
-          In this session, we will discuss various current industry challenges, dissect the implementation
-          of Single Page Applications (SPA), and practice hands-on Layout System design prioritizing visual hierarchy.
-          You will gain practical insights that can be directly applied to your future projects or career.
-        </p>
-
-        <h2>Event Agenda</h2>
-        <ul class="agenda-list">
-          <li><strong>09:00 AM</strong> - Registration & QR Check-in Scanning</li>
-          <li><strong>10:00 AM</strong> - Session 1: Vue Router & Navigation Fundamentals</li>
-          <li><strong>11:30 AM</strong> - Coffee Break & Networking Session</li>
-          <li><strong>01:00 PM</strong> - Session 2: Layout System & Grid Implementation</li>
-          <li><strong>03:00 PM</strong> - Q&A & Closing Remarks</li>
-        </ul>
+        <p>{{ event.desc }}</p>
       </div>
 
       <!-- FOCAL POINT & STICKY PANE -->
       <div class="sidebar">
         <div class="ticket-card sticky-pane">
           <h3>Attendee Registration</h3>
-          <p class="price">Free</p>
+          <p class="price">{{ event.price || 'Free' }}</p>
           <p class="ticket-desc">Secure your seat now before the quota is full.</p>
           <!-- STRONGEST FOCAL POINT -->
           <button class="btn-register">Register Now</button>
@@ -53,11 +46,19 @@
 
     </div>
   </div>
+  <section v-else class="event-not-found">
+    <h1>Event Not Available</h1>
+    <p>This event may have been removed or completed.</p>
+    <button @click="router.push('/browse/events')" class="btn-back">&larr; Back to Events</button>
+  </section>
 </template>
 
 <style scoped>
 .btn-back { background: none; border: none; font-size: 1rem; cursor: pointer;
   margin-bottom: var(--space-6); color: var(--text-muted); }
+.event-not-found { padding: var(--space-16) var(--space-4); text-align: center; }
+.event-not-found h1 { margin-bottom: var(--space-2); color: var(--text-main); }
+.event-not-found p { margin-bottom: var(--space-4); color: var(--text-muted); }
 .detail-header { background: var(--bg-light); border-radius: var(--space-4);
   border: 1px solid var(--border-color); padding: var(--space-12) var(--space-8); margin-bottom: var(--space-8); }
 .event-tag { display: inline-block; background: rgba(102, 68, 255, 0.1); color: var(--primary);

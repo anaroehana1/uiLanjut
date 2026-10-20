@@ -54,12 +54,24 @@ const routes = [
       }
     ]
   },
-  { path: '/dashboard', component: DashboardLayout, children: [ 
-    { path: '', name: 'dashboard', component: () => import('@/views/Dashboard.vue') 
-
-    } 
+  
+{
+  path: '/dashboard',
+  component: DashboardLayout,
+  children: [
+    {
+      path: '',
+      name: 'dashboard-overview',
+      component: () => import('@/views/Dashboard.vue')
+    },
+    {
+      path: 'events',
+      name: 'dashboard-events',
+      component: () => import('@/views/EventManagement.vue')
+    }
   ]
- }
+}
+
 ]
 
 const router = createRouter({

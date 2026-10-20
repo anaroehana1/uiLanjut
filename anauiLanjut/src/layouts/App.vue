@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import Navbar from '@/components/app/Navbar.vue';
 import Breadcrumb from '@/components/app/Breadcrumb.vue';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
 </script>
 
 <template>
     <div class="app-layout">
         <Navbar />
         <main class="main-content">
-            <Breadcrumb />
+            <Breadcrumb v-if="!route.path.startsWith('/browse')" />
             <router-view />
         </main>
     </div>
