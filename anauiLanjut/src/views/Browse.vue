@@ -1,6 +1,16 @@
+<script setup>
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const showBrowseHeader = computed(() =>
+  ['events', 'category'].includes(route.name)
+)
+</script>
+
 <template>
   <div class="browse-page">
-    <div class="browse-header">
+    <div v-if="showBrowseHeader" class="browse-header">
       <h1>Browse & Discover</h1>
       <p>Find the events and categories that matter most to you.</p>
     </div>

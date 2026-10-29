@@ -1,118 +1,276 @@
+<script setup>
+import { computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useEvents } from '../composables/useEvents'
+import AppButton from '../components/ui/AppButton.vue'
+
+const route = useRoute()
+const router = useRouter()
+const { getEventById, isUserRegistered } = useEvents()
+
+const event = computed(() => getEventById(route.params.id))
+const registered = computed(() => isUserRegistered(route.params.id))
+const eventDate = computed(() => {
+  if (!event.value?.date) return 'Date not available'
+
+  const date = new Date(event.value.date)
+  if (Number.isNaN(date.getTime())) return event.value.date
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date)
+})
+
+function openRegistration() {
+  router.push({
+    name: registered.value ? 'ticket-receipt' : 'event-registration',
+    params: { id: route.params.id },
+  })
+}
+</script>
+
 <template>
-  <div class="event-detail-page">
-    <button @click="$router.push('/browse/events')" class="btn-back">&larr; Back to Events</button>
+  <main class="event-detail-page">
+    <button type="button" class="back-link" @click="router.push({ name: 'events' })">
+      &larr; Back to Events
+    </button>
 
-    <div class="detail-header">
-      <span class="event-tag">Workshop & Training</span>
-      <h1>Vue.js Mastery Workshop {{ $route.params.id }}</h1>
+    <section v-if="event" class="detail-header">
+      <div class="event-tags">
+        <span class="event-tag">{{ event.cat || 'Event' }}</span>
+        <span :class="['status-tag', registered ? 'is-registered' : 'is-open']">
+          {{ registered ? 'Registered' : event.quota > 0 ? 'Open Registration' : 'Sold Out' }}
+        </span>
+      </div>
+      <h1>{{ event.title }}</h1>
       <div class="meta-info">
-        <span class="meta-item">📅 October 12, 2026</span>
-        <span class="meta-item">📍 Tech Hub, Jakarta Pusat</span>
-        <span class="meta-item">👥 Quota: 150 Attendees</span>
+        <span><strong>Date:</strong> {{ eventDate }}</span>
+        <span><strong>Location:</strong> {{ event.loc }}</span>
+        <span><strong>Remaining Quota:</strong> {{ event.quota }} Attendees</span>
       </div>
-    </div>
+    </section>
 
-    <!-- ASYMMETRICAL LAYOUT -->
-    <div class="detail-content grid-asymmetric">
-
-      <!-- F-PATTERN: Breaking text with Headings & Bullet Points -->
-      <div class="main-desc">
+    <section v-if="event" class="detail-content">
+      <article class="main-desc">
         <h2>About This Event</h2>
-        <p>
-          Welcome to the biggest web interface development training event of the year!
-          Gatherly is collaborating with the local developer community to host a comprehensive workshop
-          designed specifically to bring together professionals, enthusiasts, and students.
-        </p>
-        <p>
-          In this session, we will discuss various current industry challenges, dissect the implementation
-          of Single Page Applications (SPA), and practice hands-on Layout System design prioritizing visual hierarchy.
-          You will gain practical insights that can be directly applied to your future projects or career.
-        </p>
+        <p>{{ event.desc || 'More event information will be available soon.' }}</p>
+      </article>
 
-        <h2>Event Agenda</h2>
-        <ul class="agenda-list">
-          <li><strong>09:00 AM</strong> - Registration & QR Check-in Scanning</li>
-          <li><strong>10:00 AM</strong> - Session 1: Vue Router & Navigation Fundamentals</li>
-          <li><strong>11:30 AM</strong> - Coffee Break & Networking Session</li>
-          <li><strong>01:00 PM</strong> - Session 2: Layout System & Grid Implementation</li>
-          <li><strong>03:00 PM</strong> - Q&A & Closing Remarks</li>
-        </ul>
-      </div>
+      <aside class="sidebar">
+        <div class="ticket-card">
+          <h2>Event Registration</h2>
+          <p v-if="registered" class="registration-status">
+            You are registered for this event. Your booking is confirmed.
+          </p>
+          <p v-else class="ticket-desc">
+            Secure your spot now before the remaining quota is filled.
+          </p>
 
-      <!-- FOCAL POINT & STICKY PANE -->
-      <div class="sidebar">
-        <div class="ticket-card sticky-pane">
-          <h3>Attendee Registration</h3>
-          <p class="price">Free</p>
-          <p class="ticket-desc">Secure your seat now before the quota is full.</p>
-          <!-- STRONGEST FOCAL POINT -->
-          <button class="btn-register">Register Now</button>
-          <p class="spots">Only 12 seats left!</p>
+          <AppButton
+            class="register-button"
+            :disabled="!registered && event.quota <= 0"
+            @click="openRegistration"
+          >
+            {{ registered ? 'Already Registered' : event.quota > 0 ? 'Register Now' : 'Sold Out' }}
+          </AppButton>
+
+          <button
+            v-if="registered"
+            type="button"
+            class="ticket-link"
+            @click="openRegistration"
+          >
+            View Your Ticket Receipt &rarr;
+          </button>
+          <p v-else class="spots">{{ event.quota }} seats available</p>
         </div>
-      </div>
+      </aside>
+    </section>
 
-    </div>
-  </div>
+    <section v-else class="not-found">
+      <h1>Event not found</h1>
+      <p>This event may have been removed or the link is invalid.</p>
+      <AppButton @click="router.push({ name: 'events' })">Back to Event Catalog</AppButton>
+    </section>
+  </main>
 </template>
 
 <style scoped>
-.btn-back { background: none; border: none; font-size: 1rem; cursor: pointer;
-  margin-bottom: var(--space-6); color: var(--text-muted); }
-.detail-header { background: var(--bg-light); border-radius: var(--space-4);
-  border: 1px solid var(--border-color); padding: var(--space-12) var(--space-8); margin-bottom: var(--space-8); }
-.event-tag { display: inline-block; background: rgba(102, 68, 255, 0.1); color: var(--primary);
-  padding: var(--space-1) var(--space-4); border-radius: 50px; font-weight: 600; font-size: 0.9rem; margin-bottom: var(--space-4); }
-.detail-header h1 { font-size: 2.8rem; margin-bottom: var(--space-4); line-height: 1.2; }
-.meta-info { display: flex; gap: var(--space-6); }
-.meta-item { color: var(--text-muted); font-weight: 500; font-size: 1.05rem; }
-
-/* ASYMMETRICAL GRID */
-.grid-asymmetric {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: var(--space-12);
+.event-detail-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4px 0 48px;
 }
 
-.main-desc h2 { margin-bottom: var(--space-4); font-size: 1.8rem; border-left: 4px solid var(--primary); padding-left: var(--space-2); }
-.main-desc p { color: var(--text-main); line-height: 1.8; margin-bottom: var(--space-6); font-size: 1.05rem; }
-.agenda-list { list-style: none; padding: 0; margin: 0 0 var(--space-8) 0; }
-.agenda-list li { padding: var(--space-3) 0; border-bottom: 1px solid var(--border-color); color: var(--text-muted); font-size: 1.05rem; }
-
-/* FOCAL POINT CARD */
-.ticket-card {
-  background: white;
-  padding: var(--space-8);
-  border-radius: var(--space-4);
-  border: 1px solid var(--border-color);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-  text-align: center;
-}
-
-/* STICKY BEHAVIOR */
-.sticky-pane {
-  position: sticky;
-  top: 100px;
-}
-
-.ticket-card h3 { font-size: 1.5rem; margin-bottom: var(--space-2); }
-.price { font-size: 2.8rem; font-weight: 800; color: var(--primary); margin-bottom: var(--space-2); }
-.ticket-desc { color: var(--text-muted); margin-bottom: var(--space-6); }
-
-.btn-register {
-  width: 100%;
-  padding: var(--space-4);
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 1.1rem;
+.back-link {
+  margin-bottom: 14px;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  color: #52525b;
+  font: inherit;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
 }
-.btn-register:hover { background: var(--primary-hover); }
-.spots { margin-top: var(--space-4); color: #e63946; font-weight: 600; font-size: 0.95rem; }
 
-@media (max-width: 900px) {
-  .grid-asymmetric { grid-template-columns: 1fr; }
+.back-link:hover {
+  color: #6644ff;
+}
+
+.detail-header {
+  margin-bottom: 24px;
+  padding: 24px;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.event-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.event-tag,
+.status-tag {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.event-tag {
+  background: #ede9fe;
+  color: #6644ff;
+  text-transform: uppercase;
+}
+
+.status-tag.is-open {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-tag.is-registered {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.detail-header h1 {
+  margin: 0 0 12px;
+  color: #1c1948;
+  font-size: clamp(25px, 4vw, 36px);
+  line-height: 1.2;
+}
+
+.meta-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  color: #52525b;
+  font-size: 13px;
+}
+
+.meta-info strong {
+  color: #1c1948;
+}
+
+.detail-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  align-items: start;
+  gap: 28px;
+}
+
+.main-desc h2 {
+  margin: 0 0 12px;
+  padding-left: 10px;
+  border-left: 3px solid #6644ff;
+  color: #1c1948;
+  font-size: 21px;
+}
+
+.main-desc p {
+  margin: 0;
+  color: #52525b;
+  font-size: 14px;
+  line-height: 1.8;
+  white-space: pre-line;
+}
+
+.ticket-card {
+  padding: 22px;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 5%);
+  text-align: center;
+}
+
+.ticket-card h2 {
+  margin: 0 0 10px;
+  color: #1c1948;
+  font-size: 18px;
+}
+
+.ticket-desc,
+.registration-status {
+  margin: 0 0 14px;
+  color: #71717a;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.registration-status {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.register-button {
+  width: 100%;
+}
+
+.spots {
+  margin: 10px 0 0;
+  color: #16a34a;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ticket-link {
+  display: block;
+  margin: 12px auto 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #6644ff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.not-found {
+  padding: 30px;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.not-found p {
+  margin-bottom: 18px;
+  color: #71717a;
+}
+
+@media (max-width: 800px) {
+  .detail-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 </style>
