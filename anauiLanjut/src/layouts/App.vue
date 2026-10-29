@@ -1,13 +1,20 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
 import Navbar from '@/components/app/Navbar.vue';
 import Breadcrumb from '@/components/app/Breadcrumb.vue';
+
+const route = useRoute();
+const showBreadcrumb = computed(() =>
+    !['event-detail', 'event-registration', 'ticket-receipt'].includes(String(route.name))
+);
 </script>
 
 <template>
     <div class="app-layout">
         <Navbar />
         <main class="main-content">
-            <Breadcrumb />
+            <Breadcrumb v-if="showBreadcrumb" />
             <router-view />
         </main>
     </div>

@@ -1,6 +1,8 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import AppLayout from '@/layouts/App.vue'
-import DashboardLayout from '@/layouts/DashboardLayout.vue'
+
+import { createRouter, createWebHistory } from 'vue-router';
+
+import AppLayout from '@/layouts/App.vue';
+import DashboardLayout from '@/layouts/DashboardLayout.vue';
 
 const routes = [
   {
@@ -39,12 +41,30 @@ const routes = [
             meta: { breadcrumb: 'Event Detail' }
           },
           {
+            path: 'events/:id/register',
+            name: 'event-registration',
+            component: () => import('@/views/EventRegistration.vue'),
+            meta: { breadcrumb: 'Register Event' }
+          },
+          {
             path: 'category',
             name: 'category',
             component: () => import('@/views/Category.vue'),
             meta: { breadcrumb: 'Category' }
           }
         ]
+      },
+      {
+        path: 'your-events',
+        name: 'your-events',
+        component: () => import('@/views/YourEvents.vue'),
+        meta: { breadcrumb: 'Your Events' }
+      },
+      {
+        path: 'your-events/:id',
+        name: 'ticket-receipt',
+        component: () => import('@/views/TicketReceipt.vue'),
+        meta: { breadcrumb: 'Ticket Receipt' }
       },
       {
         path: 'contact',
@@ -54,17 +74,38 @@ const routes = [
       }
     ]
   },
-  { path: '/dashboard', component: DashboardLayout, children: [ 
-    { path: '', name: 'dashboard', component: () => import('@/views/Dashboard.vue') 
-
-    } 
-  ]
- }
-]
+  {
+    path: '/dashboard',
+    component: DashboardLayout,
+    children: [
+      {
+        path: '',
+        name: 'dashboard-overview',
+        component: () => import('@/views/Dashboard.vue')
+      },
+      {
+        path: 'events',
+        name: 'dashboard-events',
+        component: () => import('@/views/EventManagement.vue')
+      }
+    ]
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/'
+  }
+];
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes
-})
+  routes,
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition;
+    }
 
-export default router
+    return { top: 0 };
+  }
+});
+
+export default router;
