@@ -1,11 +1,14 @@
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useEvents } from '../composables/useEvents'
 import SearchBar from '../components/event/SearchBar.vue'
 import CategoryFilter from '../components/event/CategoryFilter.vue'
+import AppButton from '../components/ui/AppButton.vue'
 
-const { events: savedEvents, isUserRegistered } = useEvents()
+const router = useRouter()
+const { events: savedEvents, isUserRegistered, fetchEvents, loading, error } = useEvents()
 
 const searchQuery = ref('')
 const selectedCategory = ref('All')
@@ -20,6 +23,10 @@ const categories = [
 ]
 
 const sourceEvents = computed(() => savedEvents.value)
+
+onMounted(() => {
+  fetchEvents()
+})
 
 const filteredEvents = computed(() => {
   const keyword = searchQuery.value.trim().toLowerCase()
@@ -78,12 +85,45 @@ function formatDate(value) {
       />
     </div>
 
-    <div class="results-heading">
+    <div v-if="!loading && !error" class="results-heading">
       <h3>Daftar Acara</h3>
       <span>{{ filteredEvents.length }} acara ditemukan</span>
     </div>
 
-    <div v-if="filteredEvents.length" class="event-grid">
+    <div v-if="loading" class="event-grid" aria-label="Memuat daftar acara" aria-busy="true">
+      <article v-for="item in 6" :key="item" class="skeleton-card">
+        <div class="skeleton-meta">
+          <span class="skeleton-line skeleton-date"></span>
+          <span class="skeleton-pill"></span>
+        </div>
+        <span class="skeleton-line skeleton-title"></span>
+        <span class="skeleton-line skeleton-loc"></span>
+        <span class="skeleton-line skeleton-desc"></span>
+        <span class="skeleton-line skeleton-desc short"></span>
+      </article>
+    </div>
+
+    <section v-else-if="error" class="error-state" role="alert">
+      <span class="error-badge">NETWORK ERROR</span>
+      <h3>Gagal Memuat Data Acara</h3>
+      <p>{{ error }}</p>
+      <div class="error-action">
+        <AppButton :loading="loading" @click="fetchEvents">
+          Muat Ulang Produk &amp; Acara
+        </AppButton>
+      </div>
+    </section>
+
+    <section v-else-if="!sourceEvents.some((event) => !event.done)" class="empty-state catalog-empty">
+      <span class="empty-icon">📅</span>
+      <h3>Belum Ada Acara</h3>
+      <p>Belum ada acara aktif yang dijadwalkan. Organizer dapat memublikasikan acara baru dari Dashboard.</p>
+      <AppButton @click="router.push('/dashboard/events')">
+        Ke Dashboard Organizer →
+      </AppButton>
+    </section>
+
+    <div v-else-if="filteredEvents.length" class="event-grid">
       <div
         v-for="event in filteredEvents"
         :key="event.id"
@@ -118,7 +158,7 @@ function formatDate(value) {
       </div>
     </div>
 
-    <div v-else class="empty-state">
+    <div v-else-if="!loading && !error" class="empty-state">
       <span class="empty-icon">🔎</span>
       <h3>Acara tidak ditemukan</h3>
       <p>Coba kata kunci atau kategori yang berbeda.</p>
@@ -294,6 +334,20 @@ function formatDate(value) {
   border: 1px dashed var(--border-color);
   border-radius: 14px;
   text-align: center;
+}
+
+.catalog-empty {
+  max-width: 580px;
+  margin: 32px auto;
+  padding: 34px 24px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 4%);
+}
+
+.catalog-empty p {
+  max-width: 420px;
+  margin: 0 auto 20px;
+  line-height: 1.6;
 }
 
 .empty-icon {

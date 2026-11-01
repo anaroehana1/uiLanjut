@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { RouterView, RouterLink } from 'vue-router';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
 </script>
 
 <template>
@@ -13,10 +16,20 @@ import { RouterView, RouterLink } from 'vue-router';
         <router-link to="/">Gatherly Organizer</router-link>
       </div>
       <nav class="rail-nav">
-        <router-link to="/dashboard" class="rail-link active">Overview</router-link>
-        <a href="#" class="rail-link">My Events</a>
-        <a href="#" class="rail-link">Attendees</a>
-        <a href="#" class="rail-link">QR Check-in</a>
+        <router-link
+          to="/dashboard"
+          class="rail-link"
+          :class="{ active: route.path === '/dashboard' }"
+        >
+          Dashboard
+        </router-link>
+        <router-link
+          to="/dashboard/events"
+          class="rail-link"
+          :class="{ active: route.path.startsWith('/dashboard/events') }"
+        >
+          Event Management
+        </router-link>
       </nav>
       <div class="rail-footer">
         <router-link to="/" class="rail-link">&larr; Back to Public</router-link>
@@ -26,7 +39,7 @@ import { RouterView, RouterLink } from 'vue-router';
     <!-- PANE: Area utama dinamis tempat konten berubah dan bisa digulir secara mandiri -->
     <main class="dashboard-pane">
       <header class="pane-header">
-        <h1>Dashboard</h1>
+        <h1>{{ route.path.startsWith('/dashboard/events') ? 'Event Management Control' : 'Dashboard' }}</h1>
         <div class="user-profile">Admin</div>
       </header>
       <div class="pane-content">
@@ -108,5 +121,44 @@ import { RouterView, RouterLink } from 'vue-router';
 
 .pane-content {
   padding: var(--space-8);
+}
+
+@media (max-width: 700px) {
+  .dashboard-layout {
+    height: auto;
+    min-height: 100vh;
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  .dashboard-rail {
+    width: 100%;
+  }
+
+  .rail-brand {
+    padding: var(--space-4);
+  }
+
+  .rail-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 0;
+  }
+
+  .rail-link {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .rail-footer {
+    display: none;
+  }
+
+  .dashboard-pane {
+    overflow: visible;
+  }
+
+  .pane-content {
+    padding: var(--space-4);
+  }
 }
 </style>

@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 
 const isScrolled = ref(false)
+const isMenuOpen = ref(false)
 const route = useRoute()
 
 const menus = [
@@ -29,6 +30,10 @@ const handleScroll = () => {
   isScrolled.value = window.scrollY > 10
 }
 
+function closeMenu() {
+  isMenuOpen.value = false
+}
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
 })
@@ -39,7 +44,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <nav class="navbar" :class="{ scrolled: isScrolled }">
+  <nav class="navbar" :class="{ scrolled: isScrolled, 'mobile-open': isMenuOpen }">
     <div class="navbar-container">
       <router-link to="/" class="logo">
         <svg
@@ -71,6 +76,7 @@ onUnmounted(() => {
               active:
                 route.path === menu.path || (menu.path !== '/' && route.path.startsWith(menu.path)),
             }"
+            @click="closeMenu"
           >
             {{ menu.name }}
             <svg
@@ -92,7 +98,7 @@ onUnmounted(() => {
           <!-- First Level Dropdown -->
           <ul v-if="menu.children" class="dropdown-menu">
             <li v-for="child in menu.children" :key="child.name" class="dropdown-item">
-              <router-link :to="child.path" class="dropdown-link">
+              <router-link :to="child.path" class="dropdown-link" @click="closeMenu">
                 {{ child.name }}
                 <svg
                   v-if="child.children"
@@ -113,7 +119,7 @@ onUnmounted(() => {
               <!-- Second Level Dropdown (Submenu) -->
               <ul v-if="child.children" class="submenu">
                 <li v-for="subchild in child.children" :key="subchild.name" class="submenu-item">
-                  <router-link :to="subchild.path" class="dropdown-link">
+                  <router-link :to="subchild.path" class="dropdown-link" @click="closeMenu">
                     {{ subchild.name }}
                   </router-link>
                 </li>
@@ -157,7 +163,13 @@ onUnmounted(() => {
           </svg>
         </div>
 
-        <button class="hamburger-btn">
+        <button
+          class="hamburger-btn"
+          type="button"
+          :aria-expanded="isMenuOpen"
+          aria-label="Buka atau tutup menu navigasi"
+          @click="isMenuOpen = !isMenuOpen"
+        >
           <svg
             width="24"
             height="24"
@@ -429,6 +441,51 @@ onUnmounted(() => {
   .nav-menu {
     display: none;
   }
+
+  .navbar-container {
+    position: relative;
+    padding: 0.75rem 1rem;
+  }
+
+  .navbar.mobile-open .nav-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0;
+    padding: 0.5rem 1rem 1rem;
+    background: #1c1948;
+    box-shadow: 0 12px 20px rgb(0 0 0 / 18%);
+  }
+
+  .navbar.mobile-open .nav-item {
+    display: block;
+    padding: 0.2rem 0;
+  }
+
+  .navbar.mobile-open .nav-link {
+    justify-content: space-between;
+  }
+
+  .navbar.mobile-open .dropdown-menu,
+  .navbar.mobile-open .submenu {
+    position: static;
+    display: block;
+    min-width: 0;
+    margin: 0 0 0 1rem;
+    border-radius: 0;
+    background: #ffffff;
+    box-shadow: none;
+  }
+
+  .navbar.mobile-open .dropdown-link {
+    color: #333333;
+  }
+
   .lang-selector {
     display: none;
   }
