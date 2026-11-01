@@ -36,3 +36,18 @@ npm run dev
 ```sh
 npm run build
 ```
+
+## Event API
+
+The event catalog and organizer dashboard use a REST API. Set its base URL in a
+local `.env` file before starting Vite:
+
+```env
+VITE_API_URL=http://localhost:3000
+```
+
+The server must provide `GET /events`, `GET /events/:id`, `POST /events`,
+`PATCH /events/:id` (to mark an event complete), and `DELETE /events/:id`.
+Event records include an `id` and may include `title`, `date`, `loc`, `cat`,
+`quota`, `price`, `desc`, and `done`. The app shows loading, error, and empty
+states when fetching the catalog.

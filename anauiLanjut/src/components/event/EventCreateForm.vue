@@ -6,6 +6,13 @@ import AppButton from '../ui/AppButton.vue'
 
 const emit = defineEmits(['submit', 'cancel'])
 
+const props = defineProps({
+  loading: {
+    type: Boolean,
+    default: false,
+  },
+})
+
 const form = reactive({
   title: '',
   cat: 'Workshop',
@@ -18,6 +25,13 @@ const form = reactive({
 
 const errorMessage = ref('')
 const successMessage = ref('')
+const fieldErrors = reactive({
+  title: '',
+  date: '',
+  loc: '',
+  quota: '',
+  desc: '',
+})
 
 function formatEventDate(value) {
   if (!value) return ''
@@ -39,24 +53,33 @@ function formatEventDate(value) {
 function handleSubmitEvent() {
   errorMessage.value = ''
   successMessage.value = ''
+  Object.keys(fieldErrors).forEach((field) => {
+    fieldErrors[field] = ''
+  })
 
-  if (
-    !form.title.trim() ||
-    !form.date ||
-    !form.loc.trim() ||
-    !form.desc.trim()
-  ) {
-    errorMessage.value = 'Semua kolom wajib diisi.'
+  if (props.loading) return
+
+  if (!form.title.trim()) fieldErrors.title = 'Judul acara wajib diisi.'
+  if (!form.date) fieldErrors.date = 'Tanggal dan waktu wajib diisi.'
+  if (!form.loc.trim()) fieldErrors.loc = 'Lokasi acara wajib diisi.'
+  if (!form.desc.trim()) fieldErrors.desc = 'Deskripsi acara wajib diisi.'
+  if (Object.values(fieldErrors).some(Boolean)) {
+    errorMessage.value = 'Lengkapi semua kolom yang wajib diisi.'
     return
   }
 
   if (new Date(form.date).getTime() < Date.now()) {
-    errorMessage.value = 'Tanggal acara tidak boleh di masa lalu.'
+    fieldErrors.date = 'Tanggal acara tidak boleh di masa lalu.'
+    errorMessage.value = fieldErrors.date
     return
   }
 
-  if (!Number.isFinite(Number(form.quota)) || Number(form.quota) < 1) {
-    errorMessage.value = 'Kuota peserta minimal 1.'
+  if (
+    !Number.isFinite(Number(form.quota)) ||
+    Number(form.quota) < 1
+  ) {
+    fieldErrors.quota = 'Kuota peserta minimal 1.'
+    errorMessage.value = fieldErrors.quota
     return
   }
 
@@ -71,7 +94,9 @@ function handleSubmitEvent() {
   }
 
   emit('submit', eventData)
+}
 
+function handleSuccess() {
   form.title = ''
   form.cat = 'Workshop'
   form.date = ''
@@ -80,8 +105,29 @@ function handleSubmitEvent() {
   form.price = 'Free'
   form.desc = ''
 
-  successMessage.value = 'Data acara berhasil dikirim.'
+  errorMessage.value = ''
+  successMessage.value = 'Acara berhasil dipublikasikan.'
+  Object.keys(fieldErrors).forEach((field) => {
+    fieldErrors[field] = ''
+  })
 }
+
+function handleError(message) {
+  errorMessage.value = message || 'Gagal menyimpan acara.'
+  successMessage.value = ''
+}
+
+function clearFieldError(field) {
+  fieldErrors[field] = ''
+  if (!Object.values(fieldErrors).some(Boolean)) {
+    errorMessage.value = ''
+  }
+}
+
+defineExpose({
+  handleSuccess,
+  handleError,
+})
 </script>
 
 <template>
@@ -104,7 +150,7 @@ function handleSubmitEvent() {
       ✓ {{ successMessage }}
     </div>
 
-    <form class="event-form" @submit.prevent="handleSubmitEvent">
+    <form class="event-form" novalidate @submit.prevent="handleSubmitEvent">
       <div class="form-group">
         <label for="event-title">Event Title *</label>
         <input
@@ -113,8 +159,12 @@ function handleSubmitEvent() {
           type="text"
           placeholder="Contoh: Modern UI/UX Masterclass"
           class="form-input"
+          :disabled="loading"
+          :class="{ 'is-invalid': fieldErrors.title }"
+          @input="clearFieldError('title')"
           required
         />
+        <small v-if="fieldErrors.title" class="field-error">{{ fieldErrors.title }}</small>
       </div>
 
       <div class="form-row">
@@ -124,6 +174,7 @@ function handleSubmitEvent() {
             id="event-category"
             v-model="form.cat"
             class="form-input"
+            :disabled="loading"
           >
             <option value="Workshop">Workshop</option>
             <option value="Meetup">Meetup</option>
@@ -140,8 +191,12 @@ function handleSubmitEvent() {
             v-model="form.date"
             type="datetime-local"
             class="form-input"
+            :disabled="loading"
+            :class="{ 'is-invalid': fieldErrors.date }"
+            @change="clearFieldError('date')"
             required
           />
+          <small v-if="fieldErrors.date" class="field-error">{{ fieldErrors.date }}</small>
         </div>
       </div>
 
@@ -154,8 +209,12 @@ function handleSubmitEvent() {
             type="text"
             placeholder="Contoh: Innovation Center, Jakarta"
             class="form-input"
+            :disabled="loading"
+            :class="{ 'is-invalid': fieldErrors.loc }"
+            @input="clearFieldError('loc')"
             required
           />
+          <small v-if="fieldErrors.loc" class="field-error">{{ fieldErrors.loc }}</small>
         </div>
 
         <div class="form-group">
@@ -167,8 +226,12 @@ function handleSubmitEvent() {
             min="1"
             placeholder="100"
             class="form-input"
+            :disabled="loading"
+            :class="{ 'is-invalid': fieldErrors.quota }"
+            @input="clearFieldError('quota')"
             required
           />
+          <small v-if="fieldErrors.quota" class="field-error">{{ fieldErrors.quota }}</small>
         </div>
       </div>
 
@@ -178,6 +241,7 @@ function handleSubmitEvent() {
           id="event-price"
           v-model="form.price"
           class="form-input"
+          :disabled="loading"
         >
           <option value="Free">Gratis</option>
           <option value="50000">Rp50.000</option>
@@ -195,21 +259,31 @@ function handleSubmitEvent() {
           rows="4"
           placeholder="Jelaskan agenda, pembicara, dan informasi acara..."
           class="form-input"
+          :disabled="loading"
+          :class="{ 'is-invalid': fieldErrors.desc }"
+          @input="clearFieldError('desc')"
           required
         ></textarea>
+        <small v-if="fieldErrors.desc" class="field-error">{{ fieldErrors.desc }}</small>
       </div>
 
       <div class="form-actions">
         <button
           type="button"
           class="btn-secondary-action"
+          :disabled="loading"
           @click="emit('cancel')"
         >
           Batal
         </button>
 
-        <AppButton variant="primary" type="submit">
-          📣 Publikasikan Acara
+        <AppButton
+          variant="primary"
+          type="submit"
+          :loading="loading"
+          :disabled="loading"
+        >
+          {{ loading ? 'Menyimpan...' : '📣 Publikasikan Acara' }}
         </AppButton>
       </div>
     </form>
@@ -303,6 +377,25 @@ h3 {
   box-shadow: 0 0 0 3px rgb(81 69 205 / 12%);
 }
 
+.form-input.is-invalid {
+  border-color: #ef4444;
+  background: #fff7f7;
+}
+
+.form-input.is-invalid:focus {
+  box-shadow: 0 0 0 3px rgb(239 68 68 / 12%);
+}
+
+.field-error {
+  color: #dc2626;
+  font-size: 12px;
+}
+
+.form-input:disabled {
+  background: #f4f4f5;
+  cursor: not-allowed;
+}
+
 textarea.form-input {
   resize: vertical;
 }
@@ -329,8 +422,13 @@ textarea.form-input {
   cursor: pointer;
 }
 
-.btn-secondary-action:hover {
+.btn-secondary-action:hover:not(:disabled) {
   background: #e4e4e7;
+}
+
+.btn-secondary-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 @media (max-width: 600px) {

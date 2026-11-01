@@ -1,15 +1,24 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useEvents } from '../composables/useEvents'
 import AppButton from '../components/ui/AppButton.vue'
 
 const route = useRoute()
 const router = useRouter()
-const { getEventById, isUserRegistered } = useEvents()
+const { getEventById, fetchEventById, isUserRegistered, loading, error } = useEvents()
 
 const event = computed(() => getEventById(route.params.id))
 const registered = computed(() => isUserRegistered(route.params.id))
+
+watch(
+  () => route.params.id,
+  (id) => {
+    fetchEventById(id)
+  },
+  { immediate: true },
+)
+
 const eventDate = computed(() => {
   if (!event.value?.date) return 'Date not available'
 
@@ -39,7 +48,24 @@ function openRegistration() {
       &larr; Back to Events
     </button>
 
-    <section v-if="event" class="detail-header">
+    <section v-if="loading && !event" class="detail-state" aria-live="polite">
+      <span class="skeleton-line skeleton-title"></span>
+      <span class="skeleton-line skeleton-loc"></span>
+      <p>Sedang memuat detail acara...</p>
+    </section>
+
+    <section v-else-if="error && !event" class="error-state" role="alert">
+      <span class="error-badge">NETWORK ERROR</span>
+      <h3>Gagal Memuat Detail Acara</h3>
+      <p>{{ error }}</p>
+      <div class="error-action">
+        <AppButton :loading="loading" @click="fetchEventById(route.params.id)">
+          Coba Lagi
+        </AppButton>
+      </div>
+    </section>
+
+    <section v-else-if="event" class="detail-header">
       <div class="event-tags">
         <span class="event-tag">{{ event.cat || 'Event' }}</span>
         <span :class="['status-tag', registered ? 'is-registered' : 'is-open']">
@@ -91,7 +117,7 @@ function openRegistration() {
       </aside>
     </section>
 
-    <section v-else class="not-found">
+    <section v-else-if="!loading && !error" class="not-found">
       <h1>Event not found</h1>
       <p>This event may have been removed or the link is invalid.</p>
       <AppButton @click="router.push({ name: 'events' })">Back to Event Catalog</AppButton>
@@ -265,6 +291,21 @@ function openRegistration() {
 
 .not-found p {
   margin-bottom: 18px;
+  color: #71717a;
+}
+
+.detail-state {
+  display: grid;
+  gap: 16px;
+  max-width: 720px;
+  padding: 28px;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.detail-state p {
+  margin: 0;
   color: #71717a;
 }
 

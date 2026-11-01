@@ -3,7 +3,11 @@
   <button
     :type="type"
     :disabled="disabled || loading"
-    :class="['app-button', `app-button--${variant}`, { 'is-loading': loading }]"
+    :class="[
+      'app-button',
+      `app-button--${variant}`,
+      { 'is-loading': loading }
+    ]"
     @click="$emit('click', $event)"
   >
     <span v-if="loading" class="button-spinner"></span>
@@ -31,9 +35,9 @@ defineProps({
     type: Boolean,
     default: false,
   },
-})
+});
 
-defineEmits(['click'])
+defineEmits(['click']);
 </script>
 
 <style scoped>
@@ -65,12 +69,12 @@ defineEmits(['click'])
 }
 
 .app-button--primary {
-  background: #5145cd;
+  background: var(--primary, #5145cd);
   color: #ffffff;
 }
 
 .app-button--primary:hover:not(:disabled) {
-  background: #4338b5;
+  background: var(--primary-hover, #4338b5);
 }
 
 .app-button--secondary {
@@ -94,8 +98,8 @@ defineEmits(['click'])
 
 .app-button--outline {
   background: transparent;
-  color: #5145cd;
-  border-color: #5145cd;
+  color: var(--primary, #5145cd);
+  border-color: var(--primary, #5145cd);
 }
 
 .app-button--outline:hover:not(:disabled) {
@@ -109,6 +113,10 @@ defineEmits(['click'])
 
 .app-button--ghost:hover:not(:disabled) {
   background: #f4f4f5;
+}
+
+.is-loading {
+  cursor: wait;
 }
 
 .button-spinner {
